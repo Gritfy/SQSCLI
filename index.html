@@ -2,22 +2,19 @@
 <html lang="en">
 
 <head>
-  <title>Bootstrap Example</title>
+  <title>SQSCLI - By Gritfy</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
 <style>
   pre {
   counter-reset: line-numbering !important;
-  background: #d0e2f5 !important;
-  padding: 12px 0px 14px 0 !important;
-  width: 600px !important;
+  background: white !important;
+  padding: 12px 10px 14px 10px !important;
+  width: auto !important;
   color: black !important;
   line-height: 100% !important;
-  height: 200px !important;
+  min-height: 50vh !important;
 }
 
 pre .line::before {
@@ -31,47 +28,79 @@ pre .line::before {
   opacity: 0.5 !important;
   color: white !important;
 }
+.jumbotron{
+  background-color: lightskyblue;
+}
+a{
+  color: brown;
+}
+.alert{
+  width: 100vh
+}
 </style>
 </head>
 
 <body>
 
   <div class="jumbotron text-center ">
-    <h1>GRIT-SQSCLIENT</h1>
-    <p>Simple GUI client tool for reading SQS - with Love from <a href="https://gritfy.com">Gritfy</a></p>
+    <h1>SQSCLI</h1>
+    <p>Simple GUI desktop app for reading SQS - With Love From <b><a id="togritfy" href="https://gritfy.com">Gritfy</a></b></p>
   </div>
 
   <div class="container">
     <div class="row">
-      <div class="col-sm-6">
+      <div class="col-sm-5">
         <h3>Enter the SQS Data here</h3>
-        <hr>
+        <hr>  
         <form>
+
+          <div class="form-group">
+            <b><label for="sqsqueue">AWS Region:</label></b>
+              <select class="form-control" id="region">
+                <option>us-east-1</option>
+                <option>us-east-2</option>
+                <option>ap-east-1</option>
+                <option>ap-east-2</option>
+              </select>
+          </div>
+
+          <div class="form-group">
+            <b><label for="sqsqueue">AWS CLI Profile:</label></b>
+            <input type="text" class="form-control" placeholder="Enter SQS Queue Endpoint" id="profile">
+          </div>
+
           <div class="form-group">
             <b><label for="sqsqueue">SQS Queue:</label></b>
             <input type="text" class="form-control" placeholder="Enter SQS Queue Endpoint" id="sqsqueue">
           </div>
+          
           <div class="form-group">
             <b><label for="msgno">No of Messages to read:</label></b>
-            <input type="text" class="form-control" placeholder="Enter Number of Messages to read at a time" id="msgno">
+            <input type="number" class="form-control" placeholder="Enter Number of Messages to read at a time" id="msgno">
           </div>
-          <button type="submit" class="btn btn-primary">Read Messages</button>
+          <button type="submit" class="btn btn-danger" id="actionbtn">Read Messages</button>
         </form>
       </div>
 
-      <div class="col-sm-6">
-        <h3>Message Console</h3>
+      <div class="col-sm-7">
+        <h3>Your Messages would appear here</h3>
         <hr>
          
-          <label for="outbox">Messages:</label>
-          <textarea class="form-control" rows="15" id="outbox"></textarea>
+          <pre class="form-control" rows="15" id="outbox"></pre>
         
       </div>
     </div>
-  </div>
   <script>
     require('./renderer.js')
 </script>
+<br>
+<footer>
+  <div class="row col-sm-12" id="footersection">
+    <!-- this would be dynamically filled -->
+</div>
+</footer>
+ <script>window.jQuery = window.$ = require('jquery');</script>
+ <script src="node_modules/bootstrap/dist/js/bootstrap.js"></script>
 </body>
 
 </html>

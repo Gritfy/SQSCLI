@@ -3,6 +3,7 @@ const {app, BrowserWindow, ipcMain} = require('electron')
 const path = require('path')
 const AWS = require("@aws-sdk/client-sqs");
 const { GetQueueUrlResult } = require('@aws-sdk/client-sqs');
+
 let mainWindow;
 let QURL;
 
@@ -22,7 +23,18 @@ function createWindow () {
   mainWindow.loadFile('index.html')
 
   // Open the DevTools.
-  // mainWindow.webContents.openDevTools()
+  mainWindow.webContents.openDevTools()
+
+  // Open URLS external browser
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    // config.fileProtocol is my custom file protocol
+    if (url.startsWith(config.fileProtocol)) {
+        return { action: 'allow' };
+    }
+    // open url in a browser and prevent default
+    shell.openExternal(url);
+    return { action: 'deny' };
+});
 }
 
 // This method will be called when Electron has finished
@@ -46,24 +58,26 @@ app.on('window-all-closed', function () {
 })
 
 
-ipcMain.on("listqueue",function(event, msgno, sqsqueue){
-  console.log("Messages",msgno)
-  console.log("SQSQueue",sqsqueue.replace(/\s+/g,' ').trim())
+ipcMain.on("listqueue",function(event, msgno, sqsqueue, region, profile){
+  // console.log("Messages",msgno)
+  // console.log("SQSQueue",sqsqueue.replace(/\s+/g,' ').trim())
   //Performaing AWS SQS Task
-  const sqs = new AWS.SQS({ region: "us-east-1" });
+  try {
 
+    const sqs = new AWS.SQS({ region: region, profile: profile });
 
     var queuename = sqsqueue.replace(/\s+/g,' ').trim();
-    
-
-    
+  
     // First we need to get the URL based on the Name
     
     var params = {
       QueueName: queuename
     }
     sqs.getQueueUrl(params, function(err, data) {
-      if (err) console.log(err, err.stack); // an error occurred
+      if (err){
+        console.log("Error in SQS GetQueueURL")
+        mainWindow.webContents.send('exception', err); // Send the response to the renderer
+      }
       else{
         console.log(data.QueueUrl); // successful response
         QURL=data.QueueUrl
@@ -81,32 +95,47 @@ ipcMain.on("listqueue",function(event, msgno, sqsqueue){
               QueueUrl: QURL
             };
 
-            console.log("ParamsToSQS"+JSON.stringify(para))
-            sqs.receiveMessage(para, function(err, data) {
-              if (err) 
-              {
-                console.log(err, err.stack); // an error occurred
-                mainWindow.webContents.send('listqueue', err); // Send the response to the renderer
-              }
-              else {
-                console.log(data)
-                mainWindow.webContents.send('listqueue', data.Messages); // Send the response to the renderer
-              }     
-            });
+            // console.log("ParamsToSQS"+JSON.stringify(para))
+            try {
+              sqs.receiveMessage(para, function(err, data) {
+                if (err) 
+                {
+                  console.log("Error in SQS Receive Message")
+                  mainWindow.webContents.send('exception', err); // Send the response to the renderer
+                }
+                else {
+                  console.log(data)
+                  mainWindow.webContents.send('listqueue', data.Messages); // Send the response to the renderer
+                }     
+              });
+            } catch (error) {
+              console.log("Error has come")
+              mainWindow.webContents.send('exception', err); // Send the response to the renderer
+              console.log(err, err.stack); // an error occurred
+            }
+            
           }  
         });
+    
+  } catch (error) {
+      mainWindow.webContents.send('exception', err); // Send the response to the renderer
+  }
+  
 
 })
 
-ipcMain.on('asynchronous-message', (event, arg) => {
-  console.log(arg) // prints "ping"
-  event.reply('asynchronous-reply', 'pong')
-})
 
-ipcMain.on('synchronous-message', (event, arg) => {
-  console.log(arg) // prints "ping"
-  event.returnValue = 'pong'
-})
+
+// ipcMain.on('asynchronous-message', (event, arg) => {
+//   console.log(arg) // prints "ping"
+//   event.reply('asynchronous-reply', 'pong')
+// })
+
+// ipcMain.on('synchronous-message', (event, arg) => {
+//   console.log(arg) // prints "ping"
+//   event.returnValue = 'pong'
+// })
+
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
