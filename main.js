@@ -57,12 +57,54 @@ app.on('window-all-closed', function () {
   if (process.platform !== 'darwin') app.quit()
 })
 
+ipcMain.on("connectivity",function(event, region, profile){
+  try {
+    const sqs = new AWS.SQS({ region: region, profile: profile })
+    var params = {
+      MaxResults: 1,
+    }
+    sqs.listQueues(params, function(err, data) {
+      if (err){
+        console.log("Error in SQS Connection Establishment")
+        mainWindow.webContents.send('exception', err); // Send the response to the renderer
+      } // an error occurred
+      else{
+        console.log(data.$metadata);
+        mainWindow.webContents.send('connectivity', data.$metadata);
+      }// successful response
+    })
+  } catch (error) {
+    mainWindow.webContents.send('exception', err); // Send the response to the renderer
+  }
+})
+
+ipcMain.on("getqueueslist",function(event, region, profile){
+  try {
+    const sqs = new AWS.SQS({ region: region, profile: profile })
+    var params = {
+      MaxResults: 1000,
+    }
+    sqs.listQueues(params, function(err, data) {
+      if (err){
+        console.log("Error in SQS GetQueueURL")
+        mainWindow.webContents.send('exception', err); // Send the response to the renderer
+      } // an error occurred
+      else{
+        //console.log(data);
+        mainWindow.webContents.send('getqueueslist', data.QueueUrls);
+      }// successful response
+    })
+  } catch (error) {
+    mainWindow.webContents.send('exception', err); // Send the response to the renderer
+  }
+})
 
 ipcMain.on("listqueue",function(event, msgno, sqsqueue, region, profile){
   // console.log("Messages",msgno)
   // console.log("SQSQueue",sqsqueue.replace(/\s+/g,' ').trim())
   //Performaing AWS SQS Task
   try {
+    console.log(sqsqueue)
 
     const sqs = new AWS.SQS({ region: region, profile: profile });
 

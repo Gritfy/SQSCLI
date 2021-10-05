@@ -55,7 +55,7 @@ a{
         <form>
 
           <div class="form-group">
-            <b><label for="sqsqueue">AWS Region:</label></b>
+            <b><label for="region">AWS Region:</label></b>
               <select class="form-control" id="region">
                 <option>us-east-1</option>
                 <option>us-east-2</option>
@@ -65,13 +65,28 @@ a{
           </div>
 
           <div class="form-group">
-            <b><label for="sqsqueue">AWS CLI Profile:</label></b>
+            <b><label for="profile">AWS CLI Profile:</label></b>
             <input type="text" class="form-control" placeholder="Enter SQS Queue Endpoint" id="profile">
+          </div>
+
+          <div class="form-check row">
+            <div class="col">
+              <input class="form-check-input" type="checkbox" id="connection">
+              <label for="connection">Check Connection</label>
+            </div>
+
+            <div class="col">
+              <input class="form-check-input" type="checkbox" id="getqueues">
+              <label for="getqueues">Get Queues</label>
+            </div>
           </div>
 
           <div class="form-group">
             <b><label for="sqsqueue">SQS Queue:</label></b>
-            <input type="text" class="form-control" placeholder="Enter SQS Queue Endpoint" id="sqsqueue">
+              <select class="form-control" id="sqsqueue">
+                <option selected>Select Queue</option>
+                <!-- More options would be added dynamically -->
+              </select>
           </div>
           
           <div class="form-group">

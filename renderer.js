@@ -10,14 +10,32 @@ const ipc = require('electron').ipcRenderer
 
 const outbox = document.getElementById("outbox")
 
-
-
 // var outputdata = [];
 
 var stringbuffer = "";
 
 const form = document.querySelector('form')
+const list = document.getElementById('getqueues')
+const check = document.getElementById('connection')
 const alertboxbtn=document.querySelector('#closealert')
+
+check.addEventListener('input',checkconnection);
+
+function checkconnection(c){
+    c.preventDefault();
+    const region = document.querySelector("#region").value
+    const profile = document.querySelector("#profile").value
+    ipc.send('connectivity')
+  }
+
+list.addEventListener('change',getallqueues);
+
+function getallqueues(q){
+  q.preventDefault();
+  const region = document.querySelector("#region").value
+  const profile = document.querySelector("#profile").value
+  ipc.send('getqueueslist', region, profile)
+}
 
 form.addEventListener('submit',submitform);
 
@@ -36,6 +54,28 @@ ipc.on('exception',function(event, data){
     
     $(".alerttext").last().text(data.toString());
 
+})
+
+ipc.on("connectivity", function(event, data){
+    if(data.httpStatusCode == 200)
+    {
+        $("#footersection").append(
+            '<div class="alert alert-primary alert-dismissible" id="exception"><button type="button" class="close" data-dismiss="alert" id="closealert">&times;</button><strong>Hurry!</strong> <span class="alerttext">sometext</span></div>'
+            );
+        $(".alerttext").last().text("Connection Established");
+    }
+})
+
+ipc.on("getqueueslist", function(event, data){
+    var queues = [];
+    data.forEach((e,index) => {
+      queues.push(e.slice(e.lastIndexOf("/") + 1))
+      $("#sqsqueue").append(
+        '<option class="queue">Select Queue</option>'
+      );
+      $(".queue").last().text(e.slice(e.lastIndexOf("/") + 1).toString());
+    });
+    console.log(queues)
 })
 
 ipc.on('listqueue', function(event, data){
