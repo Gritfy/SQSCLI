@@ -2,7 +2,8 @@
 const {app, BrowserWindow, ipcMain} = require('electron')
 const path = require('path')
 const AWS = require("@aws-sdk/client-sqs");
-const { GetQueueUrlResult } = require('@aws-sdk/client-sqs');
+const AWS_EC2 = require("@aws-sdk/client-ec2");
+//const { GetQueueUrlResult } = require('@aws-sdk/client-sqs');
 
 let mainWindow;
 let QURL;

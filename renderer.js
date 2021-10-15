@@ -19,16 +19,16 @@ const list = document.getElementById('getqueues')
 const check = document.getElementById('connection')
 const alertboxbtn=document.querySelector('#closealert')
 
-check.addEventListener('input',checkconnection);
+check.addEventListener('click',checkconnection);
 
 function checkconnection(c){
     c.preventDefault();
     const region = document.querySelector("#region").value
     const profile = document.querySelector("#profile").value
-    ipc.send('connectivity')
+    ipc.send('connectivity', region, profile)
   }
 
-list.addEventListener('change',getallqueues);
+list.addEventListener('click',getallqueues);
 
 function getallqueues(q){
   q.preventDefault();
@@ -60,22 +60,21 @@ ipc.on("connectivity", function(event, data){
     if(data.httpStatusCode == 200)
     {
         $("#footersection").append(
-            '<div class="alert alert-primary alert-dismissible" id="exception"><button type="button" class="close" data-dismiss="alert" id="closealert">&times;</button><strong>Hurry!</strong> <span class="alerttext">sometext</span></div>'
+            '<div class="alert alert-primary alert-dismissible" id="exception"><button type="button" class="close" data-dismiss="alert" id="closealert">&times;</button><strong>Hurray!</strong> <span class="alerttext">sometext</span></div>'
             );
         $(".alerttext").last().text("Connection Established");
     }
 })
 
 ipc.on("getqueueslist", function(event, data){
-    var queues = [];
+    var queues = []
+    $("#sqsqueue").empty();
     data.forEach((e,index) => {
-      queues.push(e.slice(e.lastIndexOf("/") + 1))
       $("#sqsqueue").append(
         '<option class="queue">Select Queue</option>'
       );
       $(".queue").last().text(e.slice(e.lastIndexOf("/") + 1).toString());
     });
-    console.log(queues)
 })
 
 ipc.on('listqueue', function(event, data){
@@ -89,7 +88,7 @@ ipc.on('listqueue', function(event, data){
 
     //Reset Values
     form.reset()
-    
+    $("#sqsqueue").html('<option selected>Select Queue</option>')
 
     data.forEach((e, index) => {
         msgcount=index+1
