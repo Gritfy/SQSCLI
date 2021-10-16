@@ -11,8 +11,8 @@ let QURL;
 function createWindow () {
   // Create the browser window.
   mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 1000,
+    height: 1000,
     webPreferences: {
       // preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: true,
@@ -38,11 +38,33 @@ function createWindow () {
 });
 }
 
+function onLoad () {
+  try {
+    const ec2 = new AWS_EC2.EC2({ region: 'us-east-1', profile: 'dev' });
+    var params = {
+      AllRegions: true,
+    }
+    ec2.describeRegions(params, function(err, data) {
+      if (err){
+        mainWindow.webContents.send('exception', err); // Send the response to the renderer
+      } // an error occurred
+      else{
+        //console.log(data);
+        mainWindow.webContents.send('zones', data.Regions);
+      }// successful response
+    })
+  } catch (error) {
+    console.log(error)
+    mainWindow.webContents.send('exception', error); // Send the response to the renderer
+  }
+}
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
   createWindow()
+  onLoad()
 
   app.on('activate', function () {
     // On macOS it's common to re-create a window in the app when the
@@ -54,10 +76,6 @@ app.whenReady().then(() => {
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
 // explicitly with Cmd + Q.
-app.on('window-all-closed', function () {
-  if (process.platform !== 'darwin') app.quit()
-})
-
 ipcMain.on("connectivity",function(event, region, profile){
   try {
     const sqs = new AWS.SQS({ region: region, profile: profile })
@@ -147,8 +165,7 @@ ipcMain.on("listqueue",function(event, msgno, sqsqueue, region, profile){
                   mainWindow.webContents.send('exception', err); // Send the response to the renderer
                 }
                 else {
-                  console.log(data)
-                  mainWindow.webContents.send('listqueue', data.Messages); // Send the response to the renderer
+                  mainWindow.webContents.send('listqueue', data); // Send the response to the renderer
                 }     
               });
             } catch (error) {

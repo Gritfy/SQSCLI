@@ -47,19 +47,50 @@ function submitform(e){
   const profile = document.querySelector("#profile").value
   ipc.send('listqueue', msgno, sqsqueue, region, profile)  
 }
+
+ipc.on("zones", function(event, data){
+    //console.log(data);
+    data.forEach((e,index) => {
+        $("#region").append(
+            '<option class="region">Select Queue</option>'
+        );
+        $(".region").last().text(e.RegionName.toString());
+        //console.log(e.RegionName)
+      });
+})
+
 ipc.on('exception',function(event, data){
-    $("#footersection").append(
-    '<div class="alert alert-danger alert-dismissible" id="exception"><button type="button" class="close" data-dismiss="alert" id="closealert">&times;</button><strong>Error!</strong> <span class="alerttext">sometext</span></div>'
-    );
+    if(data == "Error: Could not load credentials from any providers")
+    {
+        $("#alertsection").append(
+            '<div class="alert alert-danger alert-dismissible" id="exception"><button type="button" class="close" data-dismiss="alert" id="closealert">&times;</button><strong>Error!</strong> <span class="alerttext"></span></div>'
+            );
+            $(".alerttext").last().text("No profile exists with the given name");
+    }
+    else if(data == "Error: The security token included in the request is invalid.")
+    {
+        $("#alertsection").append(
+            '<div class="alert alert-danger alert-dismissible" id="exception"><button type="button" class="close" data-dismiss="alert" id="closealert">&times;</button><strong>Error!</strong> <span class="alerttext"></span></div>'
+            );  
+            $(".alerttext").last().text("Security token in invalid. Please select another Region.");
+    }
+    else
+    {
+        $("#alertsection").append(
+            '<div class="alert alert-danger alert-dismissible" id="exception"><button type="button" class="close" data-dismiss="alert" id="closealert">&times;</button><strong>Error!</strong> <span class="alerttext"></span></div>'
+            );  
+            $(".alerttext").last().text(data.toString());
+    }
     
-    $(".alerttext").last().text(data.toString());
+    //$(".alerttext").last().text(data.toString());
 
 })
 
 ipc.on("connectivity", function(event, data){
     if(data.httpStatusCode == 200)
     {
-        $("#footersection").append(
+        $("#getqueues").removeAttr('hidden');
+        $("#alertsection").append(
             '<div class="alert alert-primary alert-dismissible" id="exception"><button type="button" class="close" data-dismiss="alert" id="closealert">&times;</button><strong>Hurray!</strong> <span class="alerttext">sometext</span></div>'
             );
         $(".alerttext").last().text("Connection Established");
@@ -67,7 +98,6 @@ ipc.on("connectivity", function(event, data){
 })
 
 ipc.on("getqueueslist", function(event, data){
-    var queues = []
     $("#sqsqueue").empty();
     data.forEach((e,index) => {
       $("#sqsqueue").append(
@@ -75,10 +105,12 @@ ipc.on("getqueueslist", function(event, data){
       );
       $(".queue").last().text(e.slice(e.lastIndexOf("/") + 1).toString());
     });
+    $("#selectqueue").removeAttr('hidden');
+    $("#noofmessages").removeAttr('hidden');
+    $("#actionbtn").removeAttr('hidden');
 })
 
-ipc.on('listqueue', function(event, data){
-
+ipc.on('listqueue', function(event, response){
 
     stringbuffer+="\n-----------------------------------"
     stringbuffer+="\nQueue Name :"+document.querySelector("#sqsqueue").value
@@ -89,29 +121,41 @@ ipc.on('listqueue', function(event, data){
     //Reset Values
     form.reset()
     $("#sqsqueue").html('<option selected>Select Queue</option>')
+    $("#getqueues").attr('hidden', true)
+    $("#selectqueue").attr('hidden', true)
+    $("#noofmessages").attr('hidden', true);
+    $("#actionbtn").attr('hidden', true);
 
-    data.forEach((e, index) => {
-        msgcount=index+1
-        stringbuffer+="\n-----------------------------------"
-        stringbuffer+="\nMessage Number => "+msgcount
-        stringbuffer+="\n-----------------------------------\n"
-        // outputdata.push(JSON.parse(e.Body).Message);
-        //console.log(JSON.stringify(outputdata, replacer))
-        console.log(typeof(e.Body)); // it is always a String
-
-        if (IsJsonString(e.Body) || typeof(e.Body) == 'object'){
-            console.log(JSON.stringify(JSON.parse(e.Body), undefined, 2))
-            stringbuffer+=JSON.stringify(JSON.parse(e.Body), undefined, 2)
+    // if(response.Messages.lenth() == 0)
+    // {
+    //   stringbuffer+="\n There are no messages to show."
+    // }
+    // else
+    // {
+        let data = response.Messages;
+        data.forEach((e, index) => {
+            msgcount=index+1
             stringbuffer+="\n-----------------------------------"
-            stringbuffer+="\n\n"
-        }
-        else{
-            stringbuffer+=e.Body
-            stringbuffer+="\n-----------------------------------"
-            stringbuffer+="\n\n"
-        }
-        
-    });
+            stringbuffer+="\nMessage Number => "+msgcount
+            stringbuffer+="\n-----------------------------------\n"
+            // outputdata.push(JSON.parse(e.Body).Message);
+            //console.log(JSON.stringify(outputdata, replacer))
+            console.log(typeof(e.Body)); // it is always a String
+    
+            if (IsJsonString(e.Body) || typeof(e.Body) == 'object'){
+                console.log(JSON.stringify(JSON.parse(e.Body), undefined, 2))
+                stringbuffer+=JSON.stringify(JSON.parse(e.Body), undefined, 2)
+                stringbuffer+="\n-----------------------------------"
+                stringbuffer+="\n\n"
+            }
+            else{
+                stringbuffer+=e.Body
+                stringbuffer+="\n-----------------------------------"
+                stringbuffer+="\n\n"
+            }
+            
+        });
+    //}
     
     outbox.textContent=stringbuffer 
 })
