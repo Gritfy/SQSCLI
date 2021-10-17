@@ -112,6 +112,9 @@ ipc.on("getqueueslist", function(event, data){
 
 ipc.on('listqueue', function(event, response){
 
+    //console.log(response);
+    let stringbuffer = '';
+    outbox.textContent = '';
     stringbuffer+="\n-----------------------------------"
     stringbuffer+="\nQueue Name :"+document.querySelector("#sqsqueue").value
     stringbuffer+="\nRegion     :"+document.querySelector("#region").value
@@ -126,12 +129,12 @@ ipc.on('listqueue', function(event, response){
     $("#noofmessages").attr('hidden', true);
     $("#actionbtn").attr('hidden', true);
 
-    // if(response.Messages.lenth() == 0)
-    // {
-    //   stringbuffer+="\n There are no messages to show."
-    // }
-    // else
-    // {
+    if(typeof response.Messages === 'undefined')
+    {
+      stringbuffer+="\n There are no messages to show."
+    }
+    else
+    {
         let data = response.Messages;
         data.forEach((e, index) => {
             msgcount=index+1
@@ -155,7 +158,7 @@ ipc.on('listqueue', function(event, response){
             }
             
         });
-    //}
+    }
     
     outbox.textContent=stringbuffer 
 })
