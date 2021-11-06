@@ -20,11 +20,13 @@ function createWindow () {
     }
   })
 
+
+
   // and load the index.html of the app.
   mainWindow.loadFile('index.html')
 
   // Open the DevTools.
-  mainWindow.webContents.openDevTools()
+  //mainWindow.webContents.openDevTools()
 
   // Open URLS external browser
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
@@ -38,25 +40,8 @@ function createWindow () {
 });
 }
 
-function onLoad () {
-  try {
-    const ec2 = new AWS_EC2.EC2({ region: 'us-east-1', profile: 'dev' });
-    var params = {
-      AllRegions: true,
-    }
-    ec2.describeRegions(params, function(err, data) {
-      if (err){
-        mainWindow.webContents.send('exception', err); // Send the response to the renderer
-      } // an error occurred
-      else{
-        //console.log(data);
-        mainWindow.webContents.send('zones', data.Regions);
-      }// successful response
-    })
-  } catch (error) {
-    console.log(error)
-    mainWindow.webContents.send('exception', error); // Send the response to the renderer
-  }
+function onLoad(){
+  console.log("server process is ready")
 }
 
 // This method will be called when Electron has finished

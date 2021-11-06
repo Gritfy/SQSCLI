@@ -48,16 +48,35 @@ function submitform(e){
   ipc.send('listqueue', msgno, sqsqueue, region, profile)  
 }
 
-ipc.on("zones", function(event, data){
-    //console.log(data);
-    data.forEach((e,index) => {
+// ipc.on("zones", function(event, data){
+//     console.log(data);
+//     // data.forEach((e,index) => {
+//     //     $("#region").append(
+//     //         '<option class="region">Select Queue</option>'
+//     //     );
+//     //     $(".region").last().text(e.toString());
+//     //     //console.log(e.RegionName)
+//     //   });
+// })
+
+
+const shell = require('electron').shell;
+
+$(document).on('click', 'a[href^="http"]', function(event) {
+  event.preventDefault();
+  shell.openExternal(this.href);
+});
+
+$( document ).ready(function() {
+    console.log( "Renderer is ready!" );
+    const regions=['us-east-2','us-east-1','us-west-1','us-west-2','af-south-1','ap-east-1','ap-south-1','ap-northeast-3','ap-northeast-2','ap-southeast-1','ap-southeast-2','ap-northeast-1','ca-central-1','eu-central-1','eu-west-1','eu-west-2','eu-south-1','eu-west-3','eu-north-1','me-south-1','sa-east-1']
+    regions.forEach((e,index) => {
         $("#region").append(
             '<option class="region">Select Queue</option>'
         );
-        $(".region").last().text(e.RegionName.toString());
-        //console.log(e.RegionName)
+        $(".region").last().text(e.toString());
       });
-})
+});
 
 ipc.on('exception',function(event, data){
     if(data == "Error: Could not load credentials from any providers")
