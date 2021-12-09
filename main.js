@@ -3,10 +3,21 @@ const {app, BrowserWindow, ipcMain} = require('electron')
 const path = require('path')
 const AWS = require("@aws-sdk/client-sqs");
 const AWS_EC2 = require("@aws-sdk/client-ec2");
+const { StaleIpPermission } = require('@aws-sdk/client-ec2');
 //const { GetQueueUrlResult } = require('@aws-sdk/client-sqs');
 
 let mainWindow;
 let QURL;
+
+function startTimer () {
+  timer.start();
+  setTimeout(stopTimer,60);
+}
+
+function stopTimer () {
+  timer.stop();
+}
+
 
 function createWindow () {
   // Create the browser window.
@@ -107,6 +118,8 @@ ipcMain.on("listqueue",function(event, msgno, sqsqueue, region, profile){
   // console.log("Messages",msgno)
   // console.log("SQSQueue",sqsqueue.replace(/\s+/g,' ').trim())
   //Performaing AWS SQS Task
+  var NoOfMessages;
+  var payload;
   try {
     console.log(sqsqueue)
 
@@ -133,28 +146,70 @@ ipcMain.on("listqueue",function(event, msgno, sqsqueue, region, profile){
               [
                 "All"
               ],
-              MaxNumberOfMessages: msgno,
+              MaxNumberOfMessages: parseInt(msgno),
               MessageAttributeNames: 
               [
                 "All"
               ],
-              QueueUrl: QURL
+              QueueUrl: QURL,
+              WaitTimeSeconds: 20
             };
 
-            // console.log("ParamsToSQS"+JSON.stringify(para))
+            console.log("ParamsToSQS"+JSON.stringify(para))
+
             try {
-              sqs.receiveMessage(para, function(err, data) {
+              sqs.getQueueAttributes(para, async function(err, data){
                 if (err) 
                 {
-                  console.log("Error in SQS Receive Message")
+                  console.log("Error Getting Queue Attributes")
                   mainWindow.webContents.send('exception', err); // Send the response to the renderer
                 }
                 else {
-                  mainWindow.webContents.send('listqueue', data); // Send the response to the renderer
-                }     
+                  NoOfMessages=data.Attributes.ApproximateNumberOfMessages
+                  approx_notvisible=data.Attributes.ApproximateNumberOfMessagesNotVisible
+                  message="Approximate Messages Can be read/Visible:"+NoOfMessages+"\nApproximate Messages In Transite/Not Visible:"+approx_notvisible
+                  mainWindow.webContents.send('queueinfo', message); // Send the response to the renderer
+
+                  var TotalReceivedCount=0;
+                  payload=[]
+                  console.log("=TOTALRECEIVED="+TotalReceivedCount)
+                  console.log("=TOTALMESSAGES="+NoOfMessages)
+                  while (TotalReceivedCount < NoOfMessages){
+                    console.log("=TOTALRECEIVED-INSIDELOOP="+TotalReceivedCount)
+                    
+                    TotalReceivedCount+=1
+                    try {
+                        sqs.receiveMessage(para, function(err, data) {
+                        console.log("Received Message Count"+JSON.stringify(data));
+                        if (err) 
+                        {
+                          console.log("Error in SQS Receive Message")
+                          mainWindow.webContents.send('exception', err); // Send the response to the renderer
+                        }
+                        if (data)
+                        {
+                          payload.push(data.Messages)
+                          if ( TotalReceivedCount == NoOfMessages ){
+                            console.log("Payload to Send",payload)
+                            mainWindow.webContents.send('listqueue', payload); // Send the response to the renderer
+                          }
+                          
+                        } 
+                      });
+                    } catch (error) {
+                      console.log("Error has come")
+                      mainWindow.webContents.send('exception', err); // Send the response to the renderer
+                      console.log(err, err.stack); // an error occurred
+                      break
+                    }
+                    
+                  } //Close While loop  
+                  
+                }  
               });
-            } catch (error) {
-              console.log("Error has come")
+            }
+            catch (error) {
+              console.log("Error has come  while Getting Queue Attributes")
               mainWindow.webContents.send('exception', err); // Send the response to the renderer
               console.log(err, err.stack); // an error occurred
             }
@@ -168,19 +223,3 @@ ipcMain.on("listqueue",function(event, msgno, sqsqueue, region, profile){
   
 
 })
-
-
-
-// ipcMain.on('asynchronous-message', (event, arg) => {
-//   console.log(arg) // prints "ping"
-//   event.reply('asynchronous-reply', 'pong')
-// })
-
-// ipcMain.on('synchronous-message', (event, arg) => {
-//   console.log(arg) // prints "ping"
-//   event.returnValue = 'pong'
-// })
-
-
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and require them here.
