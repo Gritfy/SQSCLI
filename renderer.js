@@ -142,7 +142,9 @@ ipc.on("getqueueslist", function(event, data){
 
 ipc.on('listqueue', function(event, response){
 
-            console.log(response);  
+            console.log(response);
+            console.log(typeof(response));
+            console.log("Here it starts");
             let stringbuffer = '';
             outbox.textContent = '';
             stringbuffer+="\n-----------------------------------"
@@ -152,33 +154,35 @@ ipc.on('listqueue', function(event, response){
             stringbuffer+="\n-----------------------------------"
 
             //Reset Values
-            form.reset()
+            //form.reset()
             $("#sqsqueue").html('<option selected>Select Queue</option>')
             $("#getqueues").attr('hidden', true)
             $("#selectqueue").attr('hidden', true)
             $("#noofmessages").attr('hidden', true);
             $("#actionbtn").attr('hidden', true);
 
-            if(typeof response.Messages === 'undefined')
+            if(response.length === 0)
             {
-            stringbuffer+="\n There are no messages to show."
+                stringbuffer+="\n There are no messages to show."
             }
             else
             {
-                let data = response.Messages;
-                console.log(data)
+                let data = response;
+                //console.log(data)
                 data.forEach((e, index) => {
                     msgcount=index+1
+                    console.log(e);
                     console.log("Message Count:"+msgcount)
                     stringbuffer+="\n-----------------------------------"
                     stringbuffer+="\nMessage Number => "+msgcount
                     stringbuffer+="\n-----------------------------------\n"
                     // outputdata.push(JSON.parse(e.Body).Message);
                     //console.log(JSON.stringify(outputdata, replacer))
-                    console.log(typeof(e.Body)); // it is always a String
+                    console.log(typeof(e));
+                    console.log(e); // it is always a String
             
                     if (IsJsonString(e.Body) || typeof(e.Body) == 'object'){
-                        console.log(JSON.stringify(JSON.parse(e.Body), undefined, 2))
+                        //console.log(JSON.stringify(JSON.parse(e.Body), undefined, 2))
                         stringbuffer+=JSON.stringify(JSON.parse(e.Body), undefined, 2)
                         stringbuffer+="\n-----------------------------------"
                         stringbuffer+="\n\n"

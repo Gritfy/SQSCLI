@@ -37,7 +37,7 @@ function createWindow () {
   mainWindow.loadFile('index.html')
 
   // Open the DevTools.
-  //mainWindow.webContents.openDevTools()
+  mainWindow.webContents.openDevTools()
 
   // Open URLS external browser
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
@@ -172,6 +172,7 @@ ipcMain.on("listqueue",function(event, msgno, sqsqueue, region, profile){
 
                   var TotalReceivedCount=0;
                   payload=[]
+                  finalArray = null
                   console.log("=TOTALRECEIVED="+TotalReceivedCount)
                   console.log("=TOTALMESSAGES="+NoOfMessages)
                   while (TotalReceivedCount < NoOfMessages){
@@ -179,23 +180,22 @@ ipcMain.on("listqueue",function(event, msgno, sqsqueue, region, profile){
                     
                     TotalReceivedCount+=1
                     try {
-                        sqs.receiveMessage(para, function(err, data) {
-                        console.log("Received Message Count"+JSON.stringify(data));
-                        if (err) 
+                      const data = await sqs.receiveMessage(para);
+                      if (data)
                         {
-                          console.log("Error in SQS Receive Message")
-                          mainWindow.webContents.send('exception', err); // Send the response to the renderer
-                        }
-                        if (data)
-                        {
-                          payload.push(data.Messages)
-                          if ( TotalReceivedCount == NoOfMessages ){
-                            console.log("Payload to Send",payload)
+                          console.log(data.Messages.length);
+                          if ( data.Messages.length == msgno ){
+                            //console.log("Payload to Send",payload)
+                            data.Messages.forEach((e, index) => {
+                              payload.push(data.Messages[index]);
+                            })
                             mainWindow.webContents.send('listqueue', payload); // Send the response to the renderer
+                            console.log("Ends Here");
+                            TotalReceivedCount = 10;
+                            return
                           }
                           
-                        } 
-                      });
+                        }
                     } catch (error) {
                       console.log("Error has come")
                       mainWindow.webContents.send('exception', err); // Send the response to the renderer
@@ -203,8 +203,9 @@ ipcMain.on("listqueue",function(event, msgno, sqsqueue, region, profile){
                       break
                     }
                     
-                  } //Close While loop  
-                  
+                  } //Close While loop
+                  console.log(finalArray); 
+                  //mainWindow.webContents.send('listqueue', finalArray);
                 }  
               });
             }
