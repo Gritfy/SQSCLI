@@ -101,7 +101,7 @@ ipc.on('exception',function(event, data){
         $("#alertsection").append(
             '<div class="alert alert-danger alert-dismissible" id="exception"><button type="button" class="close" data-dismiss="alert" id="closealert">&times;</button><strong>Error!</strong> <span class="alerttext"></span></div>'
             );  
-            $(".alerttext").last().text(data.toString());
+            $(".alerttext").last().text(data);
     }
     
     //$(".alerttext").last().text(data.toString());
@@ -129,15 +129,24 @@ ipc.on("queueinfo", function(event, data){
 
 ipc.on("getqueueslist", function(event, data){
     $("#sqsqueue").empty();
-    data.forEach((e,index) => {
-      $("#sqsqueue").append(
-        '<option class="queue">Select Queue</option>'
-      );
-      $(".queue").last().text(e.slice(e.lastIndexOf("/") + 1).toString());
-    });
-    $("#selectqueue").removeAttr('hidden');
-    $("#noofmessages").removeAttr('hidden');
-    $("#actionbtn").removeAttr('hidden');
+    if(typeof(data)=='undefined')
+    {
+        $("#alertsection").append(
+            '<div class="alert alert-danger alert-dismissible" id="exception"><button type="button" class="close" data-dismiss="alert" id="closealert">&times;</button><strong>Error!</strong> <span class="alerttext"></span></div>'
+            );
+            $(".alerttext").last().text("There are no Queues to list !!!");
+    }
+    else {
+        data.forEach((e,index) => {
+            $("#sqsqueue").append(
+              '<option class="queue">Select Queue</option>'
+            );
+            $(".queue").last().text(e.slice(e.lastIndexOf("/") + 1).toString());
+          });
+          $("#selectqueue").removeAttr('hidden');
+          $("#noofmessages").removeAttr('hidden');
+          $("#actionbtn").removeAttr('hidden');
+    }
 })
 
 ipc.on('listqueue', function(event, response){

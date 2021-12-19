@@ -110,6 +110,7 @@ ipcMain.on("getqueueslist",function(event, region, profile){
       }// successful response
     })
   } catch (error) {
+    console.log("Inside getqueueslist Catch")
     mainWindow.webContents.send('exception', err); // Send the response to the renderer
   }
 })
@@ -172,19 +173,18 @@ ipcMain.on("listqueue",function(event, msgno, sqsqueue, region, profile){
 
                   var TotalReceivedCount=0;
                   payload=[]
-                  finalArray = null
                   console.log("=TOTALRECEIVED="+TotalReceivedCount)
                   console.log("=TOTALMESSAGES="+NoOfMessages)
                   while (TotalReceivedCount < NoOfMessages){
                     console.log("=TOTALRECEIVED-INSIDELOOP="+TotalReceivedCount)
-                    
                     TotalReceivedCount+=1
+                    console.log("When loop starts: "+payload.length);
                     try {
                       const data = await sqs.receiveMessage(para);
                       if (data)
                         {
                           console.log(data.Messages.length);
-                          if ( data.Messages.length == msgno ){
+                          if ( payload.length >= msgno ){
                             //console.log("Payload to Send",payload)
                             data.Messages.forEach((e, index) => {
                               payload.push(data.Messages[index]);
@@ -194,7 +194,14 @@ ipcMain.on("listqueue",function(event, msgno, sqsqueue, region, profile){
                             TotalReceivedCount = 10;
                             return
                           }
-                          
+                          else{
+                            console.log("Enters Else");
+                            data.Messages.forEach((e, index) => {
+                              payload.push(data.Messages[index]);
+                            })
+                            //payload.push(payload);
+                          }
+                          console.log("While exiting: "+payload.length);
                         }
                     } catch (error) {
                       console.log("Error has come")
@@ -204,8 +211,6 @@ ipcMain.on("listqueue",function(event, msgno, sqsqueue, region, profile){
                     }
                     
                   } //Close While loop
-                  console.log(finalArray); 
-                  //mainWindow.webContents.send('listqueue', finalArray);
                 }  
               });
             }
