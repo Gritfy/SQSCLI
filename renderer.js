@@ -47,8 +47,14 @@ function submitform(e){
   const sqsqueue = document.querySelector("#sqsqueue").value
   const region = document.querySelector("#region").value
   const profile = document.querySelector("#profile").value
-  console.log(msgno,sqsqueue,region,profile)
-  ipc.send('listqueue', msgno, sqsqueue, region, profile)  
+  if(msgno > 10)
+  {
+      alert("Alert!\n\n No of messages cannot be morethan 10.");
+  }
+  else{
+    console.log(msgno,sqsqueue,region,profile)
+    ipc.send('listqueue', msgno, sqsqueue, region, profile) 
+  } 
 }
 
 // ipc.on("zones", function(event, data){
@@ -84,21 +90,21 @@ $( document ).ready(function() {
 ipc.on('exception',function(event, data){
     if(data == "Error: Could not load credentials from any providers")
     {
-        $("#alertsection").append(
+        $("#alertsection").html(
             '<div class="alert alert-danger alert-dismissible" id="exception"><button type="button" class="close" data-dismiss="alert" id="closealert">&times;</button><strong>Error!</strong> <span class="alerttext"></span></div>'
             );
             $(".alerttext").last().text("No profile exists with the given name");
     }
     else if(data == "Error: The security token included in the request is invalid.")
     {
-        $("#alertsection").append(
+        $("#alertsection").html(
             '<div class="alert alert-danger alert-dismissible" id="exception"><button type="button" class="close" data-dismiss="alert" id="closealert">&times;</button><strong>Error!</strong> <span class="alerttext"></span></div>'
             );  
             $(".alerttext").last().text("Security token in invalid. Please select another Region.");
     }
     else
     {
-        $("#alertsection").append(
+        $("#alertsection").html(
             '<div class="alert alert-danger alert-dismissible" id="exception"><button type="button" class="close" data-dismiss="alert" id="closealert">&times;</button><strong>Error!</strong> <span class="alerttext"></span></div>'
             );  
             $(".alerttext").last().text(data);
@@ -112,7 +118,7 @@ ipc.on("connectivity", function(event, data){
     if(data.httpStatusCode == 200)
     {
         $("#getqueues").removeAttr('hidden');
-        $("#alertsection").append(
+        $("#alertsection").html(
             '<div class="alert alert-primary alert-dismissible" id="exception"><button type="button" class="close" data-dismiss="alert" id="closealert">&times;</button><strong>Hurray!</strong> <span class="alerttext">sometext</span></div>'
             );
         $(".alerttext").last().text("Connection Established");
@@ -121,17 +127,28 @@ ipc.on("connectivity", function(event, data){
 
 ipc.on("queueinfo", function(event, data){
     console.log("QueueInfo has come",data)
-    $("#alertsection").append(
+    $("#alertsection").html(
         '<div class="alert alert-success alert-dismissible" id="exception"><button type="button" class="close" data-dismiss="alert" id="closealert">&times;</button><strong>Queue Stats!</strong> <span class="alerttext">sometext</span></div>'
         );
     $(".alerttext").last().text(data);
+})
+ipc.on("noMessages", function(event, data){
+    alert(data);
+})
+
+ipc.on("barProgress", function(event, data){
+    console.log(data);
+    $("#barprogress").attr('hidden', false);
+    $("#barprogress").html('<div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100" style="width: 100%"></div>')
+    $(".progress-bar").attr('style', data);
+    $(".progress-bar").last().text(data.replace( /^\D+/g, ''));
 })
 
 ipc.on("getqueueslist", function(event, data){
     $("#sqsqueue").empty();
     if(typeof(data)=='undefined')
     {
-        $("#alertsection").append(
+        $("#alertsection").html(
             '<div class="alert alert-danger alert-dismissible" id="exception"><button type="button" class="close" data-dismiss="alert" id="closealert">&times;</button><strong>Error!</strong> <span class="alerttext"></span></div>'
             );
             $(".alerttext").last().text("There are no Queues to list !!!");
@@ -147,6 +164,14 @@ ipc.on("getqueueslist", function(event, data){
           $("#noofmessages").removeAttr('hidden');
           $("#actionbtn").removeAttr('hidden');
     }
+})
+
+ipc.on("finalList", function(event, data){
+    console.log("Final List has come",data)
+    $("#alertsection").html(
+        '<div class="alert alert-success alert-dismissible" id="exception"><button type="button" class="close" data-dismiss="alert" id="closealert">&times;</button><strong>Queue Stats!</strong> <span class="alerttext">sometext</span></div>'
+        );
+    $(".alerttext").last().text(data);
 })
 
 ipc.on('listqueue', function(event, response){
