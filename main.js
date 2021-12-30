@@ -158,65 +158,90 @@ ipcMain.on('listqueue', function (event, msgno, sqsqueue, region, profile) {
               approx_notvisible = data.Attributes.ApproximateNumberOfMessagesNotVisible;
               message = 'Approximate Messages Can be read/Visible:' + NoOfMessages + '\nApproximate Messages In Transite/Not Visible:' + approx_notvisible;
               mainWindow.webContents.send('queueinfo', message); // Send the response to the renderer
-              if (NoOfMessages == 0 && approx_notvisible > 0) {
-                message = 'Seems like the Messages are in Transit \n\n No of Messages visible: '+NoOfMessages+'\n No of Messages in Transit/Not visible:'+approx_notvisible+'\n\nYou need to wait for the Default visibility timeout to over usually 30seconds';
+              // console.log('=TOTALRECEIVED=' + TotalReceivedCount);
+              console.log('=Total No Of Messages in Queue=' + NoOfMessages);
+              console.log('=Requested no of Messages' + msgno);
+              // console.log(typeof(parseInt(NoOfMessages)));
+              // console.log(typeof(parseInt(msgno)));
+              if (parseInt(NoOfMessages) == 0) {
+                message = 'Sinec, Approximate Messages Can be read/Visible:' + NoOfMessages + '\n\nYou need to wait till the Default visibility timeout is done';
                 mainWindow.webContents.send('noMessages', message);
               }
-              else if (NoOfMessages == 0 && approx_notvisible == 0) {
-                message = 'Queue -> '+queuename+' <- is Empty\n No of Messages visible: '+NoOfMessages+'\n No of Messages in Transit/Not visible:'+approx_notvisible;
-                mainWindow.webContents.send('noMessages', message);
-              } 
-              else {
+              else if (parseInt(NoOfMessages) < parseInt(msgno)) {
                 var TotalReceivedCount = 0;
-                successFlag = false;
                 payload = [];
-                var barWidth = "width: 0%";
-                console.log('=TOTALRECEIVED=' + TotalReceivedCount);
-                console.log('=NOOFMessages=' + NoOfMessages);
-                while (TotalReceivedCount < NoOfMessages) {
+                var barWidth = 'width: 0%';
+                while (parseInt(TotalReceivedCount) < parseInt(NoOfMessages)) {
+                  console.log('=TOTALRECEIVED-INSIDELOOP=' + TotalReceivedCount);
+                  TotalReceivedCount += 1;
+                  console.log('When first loop starts: ' + payload.length);
+                  try {
+                    const data = await sqs.receiveMessage(para);
+                    if (data) {
+                      barWidth = 'width: ' + (payload.length / msgno) * 100 + '%';
+                      mainWindow.webContents.send('barProgress', barWidth);
+                      console.log(data.Messages.length);
+                      data.Messages.forEach((e, index) => {
+                          payload.push(data.Messages[index]);
+                        });
+                      if (payload.length == parseInt(NoOfMessages)) {
+                        message = 'Queue has less messages than you asked, So pinting all the messages it had.';
+                        mainWindow.webContents.send('finalList', message);
+                        barWidth = 'width: 100%';
+                        mainWindow.webContents.send('barProgress', barWidth);
+                        mainWindow.webContents.send('listqueue', payload);
+                        console.log('Ends at 1st');
+                        //successFlag = true;
+                        TotalReceivedCount = 10;
+                        return;
+                      } else {
+                        console.log('Enters Else');
+                        //payload.push(payload);
+                      }
+                      console.log('While first loop exiting: ' + payload.length);
+                    }
+                  } catch (error) {
+                    console.log('Error has come');
+                    mainWindow.webContents.send('exception', err); // Send the response to the renderer
+                    console.log(err, err.stack); // an error occurred
+                    //}
+                    break;
+                  }
+                }
+              } else {
+                var TotalReceivedCount = 0;
+                payload = [];
+                var barWidth = 'width: 0%';
+                while (parseInt(TotalReceivedCount) < parseInt(NoOfMessages)) {
                   console.log('=TOTALRECEIVED-INSIDELOOP=' + TotalReceivedCount);
                   TotalReceivedCount += 1;
                   console.log('When loop starts: ' + payload.length);
                   try {
                     const data = await sqs.receiveMessage(para);
                     if (data) {
-                      barWidth = "width: "+payload.length/msgno * 100+"%";
+                      barWidth = 'width: ' + (payload.length / msgno) * 100 + '%';
                       mainWindow.webContents.send('barProgress', barWidth);
                       console.log(data.Messages.length);
+                      data.Messages.forEach((e, index) => {
+                        payload.push(data.Messages[index]);
+                      });
                       if (payload.length >= msgno) {
                         //console.log("Payload to Send",payload)
-                        data.Messages.forEach((e, index) => {
-                          payload.push(data.Messages[index]);
-                        });
-                        barWidth = "width: 100%";
+                        barWidth = 'width: 100%';
                         mainWindow.webContents.send('barProgress', barWidth);
                         mainWindow.webContents.send('listqueue', payload);
                         console.log('Ends Here');
-                        successFlag = true;
                         TotalReceivedCount = 10;
                         return;
                       } else {
                         console.log('Enters Else');
-                        data.Messages.forEach((e, index) => {
-                          payload.push(data.Messages[index]);
-                        });
-                        //payload.push(payload);
                       }
                       console.log('While exiting: ' + payload.length);
                     }
                   } catch (error) {
-                    if (successFlag == false) {
-                      barWidth = "width: 100%";
-                      mainWindow.webContents.send('barProgress', barWidth);
-                      mainWindow.webContents.send('listqueue', payload);
-                      message = 'Queue has less messages than you asked, So pinting all the messages it had.';
-                      mainWindow.webContents.send('finalList', message);
-                      console.log('Final list sent');
-                    } else {
-                      console.log('Error has come');
-                      mainWindow.webContents.send('exception', err); // Send the response to the renderer
-                      console.log(err, err.stack); // an error occurred
-                    }
+                    console.log('Error has come');
+                    mainWindow.webContents.send('exception', err); // Send the response to the renderer
+                    console.log(err, err.stack); // an error occurred
                     break;
                   }
                 } //Close While loop
