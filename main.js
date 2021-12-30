@@ -158,10 +158,15 @@ ipcMain.on('listqueue', function (event, msgno, sqsqueue, region, profile) {
               approx_notvisible = data.Attributes.ApproximateNumberOfMessagesNotVisible;
               message = 'Approximate Messages Can be read/Visible:' + NoOfMessages + '\nApproximate Messages In Transite/Not Visible:' + approx_notvisible;
               mainWindow.webContents.send('queueinfo', message); // Send the response to the renderer
-              if (NoOfMessages == 0) {
-                message = 'Sinec, Approximate Messages Can be read/Visible:' + NoOfMessages + '\n\nYou need to wait till the Default visibility timeout is done';
+              if (NoOfMessages == 0 && approx_notvisible > 0) {
+                message = 'Seems like the Messages are in Transit \n\n No of Messages visible: '+NoOfMessages+'\n No of Messages in Transit/Not visible:'+approx_notvisible+'\n\nYou need to wait for the Default visibility timeout to over usually 30seconds';
                 mainWindow.webContents.send('noMessages', message);
-              } else {
+              }
+              else if (NoOfMessages == 0 && approx_notvisible == 0) {
+                message = 'Queue -> '+queuename+' <- is Empty\n No of Messages visible: '+NoOfMessages+'\n No of Messages in Transit/Not visible:'+approx_notvisible;
+                mainWindow.webContents.send('noMessages', message);
+              } 
+              else {
                 var TotalReceivedCount = 0;
                 successFlag = false;
                 payload = [];
