@@ -140,10 +140,10 @@ ipcMain.on('listqueue', function (event, msgno, sqsqueue, region, profile) {
         // Once the URL is ready we can get messages
         var para = {
           AttributeNames: ['All'],
-          MaxNumberOfMessages: parseInt(msgno),
+          MaxNumberOfMessages: 10,
           MessageAttributeNames: ['All'],
           QueueUrl: QURL,
-          WaitTimeSeconds: 20,
+          WaitTimeSeconds: 20, // Long Polling Enabled
         };
 
         console.log('ParamsToSQS' + JSON.stringify(para));
@@ -156,15 +156,19 @@ ipcMain.on('listqueue', function (event, msgno, sqsqueue, region, profile) {
             } else {
               NoOfMessages = data.Attributes.ApproximateNumberOfMessages;
               approx_notvisible = data.Attributes.ApproximateNumberOfMessagesNotVisible;
-              message = 'Approximate Messages Can be read/Visible:' + NoOfMessages + '\nApproximate Messages In Transite/Not Visible:' + approx_notvisible;
+              message = 'Approximate Messages Can be read/Visible:' + NoOfMessages + '\nApproximate Messages In Transit/Not Visible:' + approx_notvisible;
               mainWindow.webContents.send('queueinfo', message); // Send the response to the renderer
               // console.log('=TOTALRECEIVED=' + TotalReceivedCount);
               console.log('=Total No Of Messages in Queue=' + NoOfMessages);
               console.log('=Requested no of Messages' + msgno);
               // console.log(typeof(parseInt(NoOfMessages)));
               // console.log(typeof(parseInt(msgno)));
-              if (parseInt(NoOfMessages) == 0) {
-                message = 'Sinec, Approximate Messages Can be read/Visible:' + NoOfMessages + '\n\nYou need to wait till the Default visibility timeout is done';
+              if (parseInt(NoOfMessages) == 0 && approx_notvisible == 0 ) {
+                message = 'Queue must be empty, No messages in Transit or available state';
+                mainWindow.webContents.send('noMessages', message);
+              }
+              else if (parseInt(NoOfMessages) == 0 && approx_notvisible > 0 ) {
+                message = 'Your messages are in Transit state : ' + approx_notvisible + '\n\nYou need to wait until the Default visibilty timeout, Default 30s';
                 mainWindow.webContents.send('noMessages', message);
               }
               else if (parseInt(NoOfMessages) < parseInt(msgno)) {
@@ -185,7 +189,7 @@ ipcMain.on('listqueue', function (event, msgno, sqsqueue, region, profile) {
                           payload.push(data.Messages[index]);
                         });
                       if (payload.length == parseInt(NoOfMessages)) {
-                        message = 'Queue has less messages than you asked, So pinting all the messages it had.';
+                        message = 'Queue has less messages than you asked, So printing all the messages available.';
                         mainWindow.webContents.send('finalList', message);
                         barWidth = 'width: 100%';
                         mainWindow.webContents.send('barProgress', barWidth);
@@ -240,8 +244,8 @@ ipcMain.on('listqueue', function (event, msgno, sqsqueue, region, profile) {
                     }
                   } catch (error) {
                     console.log('Error has come');
-                    mainWindow.webContents.send('exception', err); // Send the response to the renderer
-                    console.log(err, err.stack); // an error occurred
+                    mainWindow.webContents.send('exception', "Unexpected Error has occured. Possibly due to less number of messages"); // Send the response to the renderer
+                    console.log(error, error.stack); // an error occurred
                     break;
                   }
                 } //Close While loop
@@ -250,8 +254,8 @@ ipcMain.on('listqueue', function (event, msgno, sqsqueue, region, profile) {
           });
         } catch (error) {
           console.log('Error has come  while Getting Queue Attributes');
-          mainWindow.webContents.send('exception', err); // Send the response to the renderer
-          console.log(err, err.stack); // an error occurred
+          mainWindow.webContents.send('exception', error); // Send the response to the renderer
+          console.log(error, error.stack); // an error occurred
         }
         console.log();
       }

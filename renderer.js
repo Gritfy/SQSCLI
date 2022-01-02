@@ -47,14 +47,18 @@ function submitform(e){
   const sqsqueue = document.querySelector("#sqsqueue").value
   const region = document.querySelector("#region").value
   const profile = document.querySelector("#profile").value
-  if(msgno > 10)
-  {
-      alert("Alert!\n\n No of messages cannot be morethan 10.");
-  }
-  else{
+//   if(msgno > 10)
+//   {
+//       no_of_iteration=Math.round(msgno/10)   
+//       for(let i=0; i < no_of_iteration; i++){
+//         console.log(i,10,sqsqueue,region,profile)
+//         ipc.send('listqueue', 10, sqsqueue, region, profile)
+//       }
+//   }
+//   else{
     console.log(msgno,sqsqueue,region,profile)
     ipc.send('listqueue', msgno, sqsqueue, region, profile) 
-  } 
+//   } 
 }
 
 // ipc.on("zones", function(event, data){
@@ -174,13 +178,15 @@ ipc.on("finalList", function(event, data){
     $(".alerttext").last().text(data);
 })
 
-ipc.on('listqueue', function(event, response){
+no_of_times_called = 1
 
+ipc.on('listqueue', function(event, response){
+            
             console.log(response);
             console.log(typeof(response));
             console.log("Here it starts");
-            let stringbuffer = '';
-            outbox.textContent = '';
+            //let stringbuffer = '';
+            //outbox.textContent = '';
             stringbuffer+="\n-----------------------------------"
             stringbuffer+="\nQueue Name :"+document.querySelector("#sqsqueue").value
             stringbuffer+="\nRegion     :"+document.querySelector("#region").value
@@ -194,6 +200,7 @@ ipc.on('listqueue', function(event, response){
             $("#selectqueue").attr('hidden', true)
             $("#noofmessages").attr('hidden', true);
             $("#actionbtn").attr('hidden', true);
+            $("#barprogress").attr('hidden', true);
 
             if(response.length === 0)
             {
@@ -217,13 +224,17 @@ ipc.on('listqueue', function(event, response){
             
                     if (IsJsonString(e.Body) || typeof(e.Body) == 'object'){
                         //console.log(JSON.stringify(JSON.parse(e.Body), undefined, 2))
-                        stringbuffer+=JSON.stringify(JSON.parse(e.Body), undefined, 2)
+                        stringbuffer+="\nSender ID: "+e.Attributes.SenderId
+                        stringbuffer+="\nMessage ID: "+e.MessageId
+                        stringbuffer+="\nMessage Body: "+JSON.stringify(JSON.parse(e.Body), undefined, 2)
                         stringbuffer+="\n-----------------------------------"
                         stringbuffer+="\n\n"
                     }
                     else{
                         console.log(e.Body)
-                        stringbuffer+=e.Body
+                        stringbuffer+="\nSender ID: "+e.Attributes.SenderId
+                        stringbuffer+="\nMessage ID: "+e.MessageId
+                        stringbuffer+="\nMessage Body: "+e.Body
                         stringbuffer+="\n-----------------------------------"
                         stringbuffer+="\n\n"
                     }
@@ -231,9 +242,11 @@ ipc.on('listqueue', function(event, response){
                 });
             }   
 
-            outbox.textContent=stringbuffer
-         
-        
+                outbox.textContent=stringbuffer
+
+            // oldcontent=outbox.textContent
+            
+
 })
 
 
