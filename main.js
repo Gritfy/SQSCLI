@@ -27,6 +27,7 @@ function createWindow() {
       // preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: true,
       contextIsolation: false,
+      devTools: !app.isPackaged,
     },
   });
 
@@ -34,7 +35,7 @@ function createWindow() {
   mainWindow.loadFile('index.html');
 
   // Open the DevTools.
-  mainWindow.webContents.openDevTools();
+  //mainWindow.webContents.openDevTools();
 
   // Open URLS external browser
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
@@ -49,7 +50,7 @@ function createWindow() {
 }
 
 function onLoad() {
-  console.log('server process is ready');
+  //console.log('server process is ready');
 }
 
 // This method will be called when Electron has finished
@@ -77,11 +78,11 @@ ipcMain.on('connectivity', function (event, region, profile) {
     };
     sqs.listQueues(params, function (err, data) {
       if (err) {
-        console.log('Error in SQS Connection Establishment');
+        //console.log('Error in SQS Connection Establishment');
         mainWindow.webContents.send('exception', err); // Send the response to the renderer
       } // an error occurred
       else {
-        console.log(data.$metadata);
+        //console.log(data.$metadata);
         mainWindow.webContents.send('connectivity', data.$metadata);
       } // successful response
     });
@@ -98,28 +99,28 @@ ipcMain.on('getqueueslist', function (event, region, profile) {
     };
     sqs.listQueues(params, function (err, data) {
       if (err) {
-        console.log('Error in SQS GetQueueURL');
+        //console.log('Error in SQS GetQueueURL');
         mainWindow.webContents.send('exception', err); // Send the response to the renderer
       } // an error occurred
       else {
-        //console.log(data);
+        ////console.log(data);
         mainWindow.webContents.send('getqueueslist', data.QueueUrls);
       } // successful response
     });
   } catch (error) {
-    console.log('Inside getqueueslist Catch');
+    //console.log('Inside getqueueslist Catch');
     mainWindow.webContents.send('exception', err); // Send the response to the renderer
   }
 });
 
 ipcMain.on('listqueue', function (event, msgno, sqsqueue, region, profile) {
-  // console.log("Messages",msgno)
-  // console.log("SQSQueue",sqsqueue.replace(/\s+/g,' ').trim())
+  // //console.log("Messages",msgno)
+  // //console.log("SQSQueue",sqsqueue.replace(/\s+/g,' ').trim())
   //Performaing AWS SQS Task
   var NoOfMessages;
   var payload;
   try {
-    console.log(sqsqueue);
+    //console.log(sqsqueue);
 
     const sqs = new AWS.SQS({ region: region, profile: profile });
 
@@ -132,10 +133,10 @@ ipcMain.on('listqueue', function (event, msgno, sqsqueue, region, profile) {
     };
     sqs.getQueueUrl(params, function (err, data) {
       if (err) {
-        console.log('Error in SQS GetQueueURL');
+        //console.log('Error in SQS GetQueueURL');
         mainWindow.webContents.send('exception', err); // Send the response to the renderer
       } else {
-        console.log(data.QueueUrl); // successful response
+        ////console.log(data.QueueUrl); // successful response
         QURL = data.QueueUrl;
         // Once the URL is ready we can get messages
         var para = {
@@ -146,23 +147,23 @@ ipcMain.on('listqueue', function (event, msgno, sqsqueue, region, profile) {
           WaitTimeSeconds: 20, // Long Polling Enabled
         };
 
-        console.log('ParamsToSQS' + JSON.stringify(para));
+        ////console.log('ParamsToSQS' + JSON.stringify(para));
 
         try {
           sqs.getQueueAttributes(para, async function (err, data) {
             if (err) {
-              console.log('Error Getting Queue Attributes');
+              //console.log('Error Getting Queue Attributes');
               mainWindow.webContents.send('exception', err); // Send the response to the renderer
             } else {
               NoOfMessages = data.Attributes.ApproximateNumberOfMessages;
               approx_notvisible = data.Attributes.ApproximateNumberOfMessagesNotVisible;
               message = 'Approximate Messages Can be read/Visible:' + NoOfMessages + '\nApproximate Messages In Transit/Not Visible:' + approx_notvisible;
               mainWindow.webContents.send('queueinfo', message); // Send the response to the renderer
-              // console.log('=TOTALRECEIVED=' + TotalReceivedCount);
-              console.log('=Total No Of Messages in Queue=' + NoOfMessages);
-              console.log('=Requested no of Messages' + msgno);
-              // console.log(typeof(parseInt(NoOfMessages)));
-              // console.log(typeof(parseInt(msgno)));
+              // //console.log('=TOTALRECEIVED=' + TotalReceivedCount);
+              ////console.log('=Total No Of Messages in Queue=' + NoOfMessages);
+              ////console.log('=Requested no of Messages' + msgno);
+              // //console.log(typeof(parseInt(NoOfMessages)));
+              // //console.log(typeof(parseInt(msgno)));
               if (parseInt(NoOfMessages) == 0 && approx_notvisible == 0 ) {
                 message = 'Queue must be empty, No messages in Transit or available state';
                 mainWindow.webContents.send('noMessages', message);
@@ -176,15 +177,15 @@ ipcMain.on('listqueue', function (event, msgno, sqsqueue, region, profile) {
                 payload = [];
                 var barWidth = 'width: 0%';
                 while (parseInt(TotalReceivedCount) < parseInt(NoOfMessages)) {
-                  console.log('=TOTALRECEIVED-INSIDELOOP=' + TotalReceivedCount);
+                  //console.log('=TOTALRECEIVED-INSIDELOOP=' + TotalReceivedCount);
                   TotalReceivedCount += 1;
-                  console.log('When first loop starts: ' + payload.length);
+                  //console.log('When first loop starts: ' + payload.length);
                   try {
                     const data = await sqs.receiveMessage(para);
                     if (data) {
                       barWidth = 'width: ' + (payload.length / msgno) * 100 + '%';
                       mainWindow.webContents.send('barProgress', barWidth);
-                      console.log(data.Messages.length);
+                      //console.log(data.Messages.length);
                       data.Messages.forEach((e, index) => {
                           payload.push(data.Messages[index]);
                         });
@@ -194,20 +195,20 @@ ipcMain.on('listqueue', function (event, msgno, sqsqueue, region, profile) {
                         barWidth = 'width: 100%';
                         mainWindow.webContents.send('barProgress', barWidth);
                         mainWindow.webContents.send('listqueue', payload);
-                        console.log('Ends at 1st');
+                        //console.log('Ends at 1st');
                         //successFlag = true;
                         TotalReceivedCount = 10;
                         return;
                       } else {
-                        console.log('Enters Else');
+                        //console.log('Enters Else');
                         //payload.push(payload);
                       }
-                      console.log('While first loop exiting: ' + payload.length);
+                      //console.log('While first loop exiting: ' + payload.length);
                     }
                   } catch (error) {
-                    console.log('Error has come');
+                    //console.log('Error has come');
                     mainWindow.webContents.send('exception', err); // Send the response to the renderer
-                    console.log(err, err.stack); // an error occurred
+                    //console.log(err, err.stack); // an error occurred
                     //}
                     break;
                   }
@@ -217,35 +218,35 @@ ipcMain.on('listqueue', function (event, msgno, sqsqueue, region, profile) {
                 payload = [];
                 var barWidth = 'width: 0%';
                 while (parseInt(TotalReceivedCount) < parseInt(NoOfMessages)) {
-                  console.log('=TOTALRECEIVED-INSIDELOOP=' + TotalReceivedCount);
+                  //console.log('=TOTALRECEIVED-INSIDELOOP=' + TotalReceivedCount);
                   TotalReceivedCount += 1;
-                  console.log('When loop starts: ' + payload.length);
+                  //console.log('When loop starts: ' + payload.length);
                   try {
                     const data = await sqs.receiveMessage(para);
                     if (data) {
                       barWidth = 'width: ' + (payload.length / msgno) * 100 + '%';
                       mainWindow.webContents.send('barProgress', barWidth);
-                      console.log(data.Messages.length);
+                      //console.log(data.Messages.length);
                       data.Messages.forEach((e, index) => {
                         payload.push(data.Messages[index]);
                       });
                       if (payload.length >= msgno) {
-                        //console.log("Payload to Send",payload)
+                        ////console.log("Payload to Send",payload)
                         barWidth = 'width: 100%';
                         mainWindow.webContents.send('barProgress', barWidth);
                         mainWindow.webContents.send('listqueue', payload);
-                        console.log('Ends Here');
+                        //console.log('Ends Here');
                         TotalReceivedCount = 10;
                         return;
                       } else {
-                        console.log('Enters Else');
+                        //console.log('Enters Else');
                       }
-                      console.log('While exiting: ' + payload.length);
+                      //console.log('While exiting: ' + payload.length);
                     }
                   } catch (error) {
-                    console.log('Error has come');
+                    //console.log('Error has come');
                     mainWindow.webContents.send('exception', "Unexpected Error has occured. Possibly due to less number of messages"); // Send the response to the renderer
-                    console.log(error, error.stack); // an error occurred
+                    //console.log(error, error.stack); // an error occurred
                     break;
                   }
                 } //Close While loop
@@ -253,11 +254,11 @@ ipcMain.on('listqueue', function (event, msgno, sqsqueue, region, profile) {
             }
           });
         } catch (error) {
-          console.log('Error has come  while Getting Queue Attributes');
+          //console.log('Error has come  while Getting Queue Attributes');
           mainWindow.webContents.send('exception', error); // Send the response to the renderer
-          console.log(error, error.stack); // an error occurred
+          //console.log(error, error.stack); // an error occurred
         }
-        console.log();
+        //console.log();
       }
     });
   } catch (error) {

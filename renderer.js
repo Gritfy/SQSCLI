@@ -36,7 +36,7 @@ function getallqueues(q){
   const region = document.querySelector("#region").value
   const profile = document.querySelector("#profile").value
   ipc.send('getqueueslist', region, profile)
-  console.log(region,profile)
+  ////console.log(region,profile)
 }
 
 form.addEventListener('submit',submitform);
@@ -47,28 +47,27 @@ function submitform(e){
   const sqsqueue = document.querySelector("#sqsqueue").value
   const region = document.querySelector("#region").value
   const profile = document.querySelector("#profile").value
-//   if(msgno > 10)
-//   {
-//       no_of_iteration=Math.round(msgno/10)   
-//       for(let i=0; i < no_of_iteration; i++){
-//         console.log(i,10,sqsqueue,region,profile)
-//         ipc.send('listqueue', 10, sqsqueue, region, profile)
-//       }
-//   }
-//   else{
-    console.log(msgno,sqsqueue,region,profile)
+  if(msgno > 100)
+  {
+    $("#alertsection").html(
+        '<div class="alert alert-danger alert-dismissible" id="exception"><button type="button" class="close" data-dismiss="alert" id="closealert">&times;</button><strong>Error!</strong> <span class="alerttext"></span></div>'
+        );
+        $(".alerttext").last().text("SQSCLI Community Edition supports only 100 messages per session. Please contact us at hello@gritfy.com for Upgrade");
+  }
+  else{
+    ////console.log(msgno,sqsqueue,region,profile)
     ipc.send('listqueue', msgno, sqsqueue, region, profile) 
-//   } 
+  }
 }
 
 // ipc.on("zones", function(event, data){
-//     console.log(data);
+//     //console.log(data);
 //     // data.forEach((e,index) => {
 //     //     $("#region").append(
 //     //         '<option class="region">Select Queue</option>'
 //     //     );
 //     //     $(".region").last().text(e.toString());
-//     //     //console.log(e.RegionName)
+//     //     ////console.log(e.RegionName)
 //     //   });
 // })
 
@@ -81,7 +80,7 @@ $(document).on('click', 'a[href^="http"]', function(event) {
 });
 
 $( document ).ready(function() {
-    console.log( "Renderer is ready!" );
+    ////console.log( "Renderer is ready!" );
     const regions=['us-east-1','us-east-2','us-west-1','us-west-2','af-south-1','ap-east-1','ap-south-1','ap-northeast-3','ap-northeast-2','ap-southeast-1','ap-southeast-2','ap-northeast-1','ca-central-1','eu-central-1','eu-west-1','eu-west-2','eu-south-1','eu-west-3','eu-north-1','me-south-1','sa-east-1']
     regions.forEach((e,index) => {
         $("#region").append(
@@ -130,7 +129,7 @@ ipc.on("connectivity", function(event, data){
 })
 
 ipc.on("queueinfo", function(event, data){
-    console.log("QueueInfo has come",data)
+    ////console.log("QueueInfo has come",data)
     $("#alertsection").html(
         '<div class="alert alert-success alert-dismissible" id="exception"><button type="button" class="close" data-dismiss="alert" id="closealert">&times;</button><strong>Queue Stats!</strong> <span class="alerttext">sometext</span></div>'
         );
@@ -141,7 +140,7 @@ ipc.on("noMessages", function(event, data){
 })
 
 ipc.on("barProgress", function(event, data){
-    console.log(data);
+    ////console.log(data);
     $("#barprogress").attr('hidden', false);
     $("#barprogress").html('<div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100" style="width: 100%"></div>')
     $(".progress-bar").attr('style', data);
@@ -171,7 +170,7 @@ ipc.on("getqueueslist", function(event, data){
 })
 
 ipc.on("finalList", function(event, data){
-    console.log("Final List has come",data)
+    //console.log("Final List has come",data)
     $("#alertsection").html(
         '<div class="alert alert-success alert-dismissible" id="exception"><button type="button" class="close" data-dismiss="alert" id="closealert">&times;</button><strong>Queue Stats!</strong> <span class="alerttext">sometext</span></div>'
         );
@@ -182,9 +181,9 @@ no_of_times_called = 1
 
 ipc.on('listqueue', function(event, response){
             
-            console.log(response);
-            console.log(typeof(response));
-            console.log("Here it starts");
+            //console.log(response);
+            //console.log(typeof(response));
+            //console.log("Here it starts");
             //let stringbuffer = '';
             //outbox.textContent = '';
             stringbuffer+="\n-----------------------------------"
@@ -209,21 +208,21 @@ ipc.on('listqueue', function(event, response){
             else
             {
                 let data = response;
-                //console.log(data)
+                ////console.log(data)
                 data.forEach((e, index) => {
                     msgcount=index+1
-                    console.log(e);
-                    console.log("Message Count:"+msgcount)
+                    //console.log(e);
+                    //console.log("Message Count:"+msgcount)
                     stringbuffer+="\n-----------------------------------"
                     stringbuffer+="\nMessage Number => "+msgcount
                     stringbuffer+="\n-----------------------------------\n"
                     // outputdata.push(JSON.parse(e.Body).Message);
-                    //console.log(JSON.stringify(outputdata, replacer))
-                    console.log(typeof(e));
-                    console.log(e); // it is always a String
+                    ////console.log(JSON.stringify(outputdata, replacer))
+                    //console.log(typeof(e));
+                    //console.log(e); // it is always a String
             
                     if (IsJsonString(e.Body) || typeof(e.Body) == 'object'){
-                        //console.log(JSON.stringify(JSON.parse(e.Body), undefined, 2))
+                        ////console.log(JSON.stringify(JSON.parse(e.Body), undefined, 2))
                         stringbuffer+="\nSender ID: "+e.Attributes.SenderId
                         stringbuffer+="\nMessage ID: "+e.MessageId
                         stringbuffer+="\nMessage Body: "+JSON.stringify(JSON.parse(e.Body), undefined, 2)
@@ -231,7 +230,7 @@ ipc.on('listqueue', function(event, response){
                         stringbuffer+="\n\n"
                     }
                     else{
-                        console.log(e.Body)
+                        //console.log(e.Body)
                         stringbuffer+="\nSender ID: "+e.Attributes.SenderId
                         stringbuffer+="\nMessage ID: "+e.MessageId
                         stringbuffer+="\nMessage Body: "+e.Body
@@ -262,20 +261,43 @@ function IsJsonString(str) {
 }
 
 function replacer(key, value) {
-    console.log(value.toString())
+    //console.log(value.toString())
     return value.toString()
     //return value.toString().replace(/[^\w\s]/gi, '');
 }
 
 
-// console.log(ipc.sendSync('synchronous-message', 'ping')) // prints "pong"
+// //console.log(ipc.sendSync('synchronous-message', 'ping')) // prints "pong"
 
 // ipc.on('asynchronous-reply', (event, arg) => {
-//   console.log(arg) // prints "pong"
+//   //console.log(arg) // prints "pong"
 // })
 // ipc.send('asynchronous-message', 'ping')
 
 $('div.alert.close').on('click', function() {
-    console.log("clicked")
+    //console.log("clicked")
     $(this).parent().alert('close'); 
  });
+
+ $('#clearconsole').on('click',function(){
+    outbox.textContent=""
+    location.reload()
+ })
+
+ function copyFunction() {
+    const copyText = document.getElementById("outbox").textContent;
+    const textArea = document.createElement('textarea');
+    textArea.textContent = copyText;
+    document.body.append(textArea);
+    textArea.select();
+    document.execCommand("copy");
+  }
+  
+ $('#copymsg').on('click',function(){
+     copyFunction();
+     
+     $("#alertsection").html(
+        '<div class="alert alert-info alert-dismissible" id="exception"><button type="button" class="close" data-dismiss="alert" id="closealert">&times;</button><strong>Info!</strong> <span class="alerttext"></span></div>'
+        );
+        $(".alerttext").last().text("Content Copied to the clipboard");
+ })
