@@ -79,6 +79,11 @@ $(document).on('click', 'a[href^="http"]', function(event) {
   shell.openExternal(this.href);
 });
 
+function pageScroll() {
+    window.scrollBy(0,100);
+    // scrolldelay = setTimeout(pageScroll,10);
+}
+
 $( document ).ready(function() {
     ////console.log( "Renderer is ready!" );
     const regions=['us-east-1','us-east-2','us-west-1','us-west-2','af-south-1','ap-east-1','ap-south-1','ap-northeast-3','ap-northeast-2','ap-southeast-1','ap-southeast-2','ap-northeast-1','ca-central-1','eu-central-1','eu-west-1','eu-west-2','eu-south-1','eu-west-3','eu-north-1','me-south-1','sa-east-1']
@@ -97,6 +102,7 @@ ipc.on('exception',function(event, data){
             '<div class="alert alert-danger alert-dismissible" id="exception"><button type="button" class="close" data-dismiss="alert" id="closealert">&times;</button><strong>Error!</strong> <span class="alerttext"></span></div>'
             );
             $(".alerttext").last().text("No profile exists with the given name");
+            pageScroll()
     }
     else if(data == "Error: The security token included in the request is invalid.")
     {
@@ -284,20 +290,25 @@ $('div.alert.close').on('click', function() {
     location.reload()
  })
 
- function copyFunction() {
-    const copyText = document.getElementById("outbox").textContent;
-    const textArea = document.createElement('textarea');
-    textArea.textContent = copyText;
-    document.body.append(textArea);
-    textArea.select();
-    document.execCommand("copy");
-  }
+
   
  $('#copymsg').on('click',function(){
-     copyFunction();
-     
-     $("#alertsection").html(
-        '<div class="alert alert-info alert-dismissible" id="exception"><button type="button" class="close" data-dismiss="alert" id="closealert">&times;</button><strong>Info!</strong> <span class="alerttext"></span></div>'
-        );
-        $(".alerttext").last().text("Content Copied to the clipboard");
+
+    const copyText = document.getElementById("outbox").textContent;
+
+    if(copyText){
+        const textArea = document.createElement('textarea');
+        textArea.textContent = copyText;
+        document.body.append(textArea);
+        textArea.select();
+        document.execCommand("copy");
+
+        $("#alertsection").html(
+            '<div class="alert alert-info alert-dismissible" id="exception"><button type="button" class="close" data-dismiss="alert" id="closealert">&times;</button><strong>Info!</strong> <span class="alerttext"></span></div>'
+            );
+            $(".alerttext").last().text("Content Copied to the clipboard");
+    }
+    else {
+        alert("There is no messages to copy right now")
+    }
  })
