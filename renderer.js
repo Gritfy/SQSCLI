@@ -47,7 +47,7 @@ function submitform(e){
   const sqsqueue = document.querySelector("#sqsqueue").value
   const region = document.querySelector("#region").value
   const profile = document.querySelector("#profile").value
-  if(msgno > 100)
+  if(msgno > 10000)
   {
     $("#alertsection").html(
         '<div class="alert alert-danger alert-dismissible" id="exception"><button type="button" class="close" data-dismiss="alert" id="closealert">&times;</button><strong>Error!</strong> <span class="alerttext"></span></div>'
