@@ -1,23 +1,27 @@
 {
-  "name": "electron-quick-start",
+  "name": "SQSCLI",
   "version": "1.0.0",
-  "description": "A minimal Electron application",
+  "description": "SQSCLI V1.0",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
   },
-  "repository": "https://github.com/electron/electron-quick-start",
+  "build": {
+    "appId": "com.gritfy.sqscli",
+    "mac": {
+      "category": "sqscli cloud productivity app"
+    }
+  },
   "keywords": [
-    "Electron",
-    "quick",
-    "start",
-    "tutorial",
-    "demo"
+    "SQSCLI"
   ],
   "author": "GitHub",
   "license": "CC0-1.0",
   "devDependencies": {
-    "electron": "^15.0.0"
+    "electron": "^15.0.0",
+    "electron-builder": "^22.14.5"
   },
   "dependencies": {
     "@aws-sdk/client-ec2": "^3.36.0",

@@ -3,49 +3,69 @@
 
 <head>
   <script>window.jQuery = window.$ = require('jquery');</script>
-  <title>SQSCLI - By Gritfy</title>
+  <!-- <title>SQSCLI - By Gritfy</title> -->
+  <title>SQSCLI</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
-<style>
-  pre {
-  counter-reset: line-numbering !important;
-  background: white !important;
-  padding: 12px 10px 14px 10px !important;
-  width: auto !important;
-  color: black !important;
-  line-height: 100% !important;
-  min-height: 50vh !important;
-}
+  <style>
+    pre {
+      counter-reset: line-numbering !important;
+      background: white !important;
+      padding: 12px 10px 14px 10px !important;
+      width: auto !important;
+      color: black !important;
+      line-height: 100% !important;
+      min-height: 50vh !important;
+    }
 
-pre .line::before {
-  content: counter(line-numbering) !important;
-  counter-increment: line-numbering !important;
-  padding-right: 1em !important;
-  /* space after numbers */
-  padding-left: 8px !important;
-  width: 1.5em !important;
-  text-align: right !important;
-  opacity: 0.5 !important;
-  color: white !important;
-}
-.jumbotron{
-  padding-bottom: 2%;
-  padding-top: 2%;
-  border-bottom: 2px solid whitesmoke;
-  background-color: skyblue;
-}
-a{
-  color: brown;
-}
-.alert{
-  width: 100vh
-}
+    pre .line::before {
+      content: counter(line-numbering) !important;
+      counter-increment: line-numbering !important;
+      padding-right: 1em !important;
+      /* space after numbers */
+      padding-left: 8px !important;
+      width: 1.5em !important;
+      text-align: right !important;
+      opacity: 0.5 !important;
+      color: white !important;
+    }
 
-.headline {
-  padding-top: 2%;
-}
-</style>
+    .jumbotron {
+      padding-bottom: 2%;
+      padding-top: 2%;
+      border-bottom: 2px solid whitesmoke;
+      background-color: skyblue;
+    }
+
+    a {
+      color: brown;
+    }
+
+    .alert {
+      width: 100vh
+    }
+
+    .headline {
+      padding-top: 2%;
+    }
+
+    textarea {
+    position: absolute;
+    left: -100%;
+  }
+  body {
+    display: flex !important;
+    min-height: 100vh;
+    flex-direction: column;
+  }
+  
+  footer {
+    margin-top: auto;
+  } 
+
+
+  </style>
 </head>
 
 <body>
@@ -55,34 +75,34 @@ a{
     <div class="container">
       <div class="row">
         <div class="col-md-5 text-right">
-          <img src="./assets/command-line.png" alt="gritfy"  height="130vh">
+          <img src="./assets/command-line.png" alt="gritfy" height="130vh">
         </div>
-          <div class="col-md-6 col-md-offset-1 text-left headline">
-              <h1>SQSCLI</h1>
-              <p>Simple GUI desktop app for browsing SQS Queue</p>
-          </div>
+        <div class="col-md-6 col-md-offset-1 text-left headline">
+          <h1>SQSCLI</h1>
+          <p>Simple GUI desktop app for browsing SQS Queue</p>
+        </div>
 
       </div>
     </div>
   </div>
 
-  <div class="container" >
+  <div class="container">
     <div class="row">
       <div class="col-sm-5">
         <h3>Enter the SQS Data here</h3>
-        <hr>  
+        <hr>
         <form>
 
           <div class="form-group">
             <b><label for="region">AWS Region:</label></b>
-              <select class="form-control" id="region">
-                <!-- this would be dynamically filled -->
-              </select>
+            <select class="form-control" id="region">
+              <!-- this would be dynamically filled -->
+            </select>
           </div>
 
           <div class="form-group">
             <b><label for="profile">AWS CLI Profile:</label></b>
-            <input type="text" class="form-control" placeholder="Enter SQS Queue Endpoint" id="profile">
+            <input type="text" class="form-control" placeholder="Enter SQS Queue Endpoint" id="profile" value="personal">
           </div>
 
           <div class="form-check row">
@@ -92,12 +112,12 @@ a{
           <br>
           <div hidden class="form-group" id="selectqueue">
             <b><label for="sqsqueue">SQS Queue:</label></b>
-              <select class="form-control" id="sqsqueue">
-                <option selected>Select Queue</option>
-                <!-- More options would be added dynamically -->
-              </select>
+            <select class="form-control" id="sqsqueue">
+              <option selected>Select Queue</option>
+              <!-- More options would be added dynamically -->
+            </select>
           </div>
-          
+
           <div hidden class="form-group" id="noofmessages">
             <b><label for="msgno">No of Messages to read:</label></b>
             <input type="number" class="form-control" placeholder="Enter Number of Messages to read at a time" id="msgno">
@@ -109,33 +129,39 @@ a{
       <div class="col-sm-7">
         <h3>Your Messages would appear here</h3>
         <hr>
-         
-          <pre class="form-control" rows="15" id="outbox"></pre>
-        
+
+        <pre class="form-control" rows="15" id="outbox"></pre>
+          <button type="button" class="btn btn-danger float-right" id="clearconsole">Start fresh</button>
+          <button type="button" class="btn btn-info float-right mr-2" id="copymsg">Copy Messages</button>
       </div>
+      
     </div>
+    <div hidden id="barprogress" class="progress">
+      <!-- this would be dynamically filled -->
+    </div>
+  
   <script>
     require('./renderer.js')
-</script>
-<br>
+  </script>
+  <br>
 
-<div class="row col-sm-12" id="alertsection">
-  <!-- this would be dynamically filled -->
+  <div class="row col-sm-12" id="alertsection">
+    <!-- this  would be dynamically filled -->
+  </div>
 </div>
-<footer class="fixed-bottom">
+  <footer>
+    <nav class="navbar navbar-light">
+      <span class="navbar-brand text-center">
+        <a href="https://gritfy.com"><img src="./assets/gritfy.png" alt="gritfy" width="100" height="32"></a>
+      </span> 
+      <span>
+        With <img src="./assets/love.png" alt="gritfy" width="20" height="20"> From <a href="https://gritfy.com/#SQSCLI">Gritfy</a> SQSCLI - V1.0
+      </span>
+      <span></span>
+    </nav>
 
-  <nav class="navbar navbar-light">
-    <span class="navbar-brand text-center">   
-      <img src="./assets/gritfy.png" alt="gritfy" width="100" height="32">
-    </span>
-    <span>
-      With <img src="./assets/love.png" alt="gritfy" width="20" height="20"> From <a href="https://gritfy.com/#SQSCLI">Gritfy</a> © 2021 | V1.0
-    </span>
-    <span></span>
-  </nav>
-
-</footer>
- <script src="node_modules/bootstrap/dist/js/bootstrap.js"></script>
+  </footer>
+  <script src="node_modules/bootstrap/dist/js/bootstrap.js"></script>
 </body>
 
 </html>
